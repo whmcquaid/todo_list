@@ -1,4 +1,5 @@
 import React, {Fragment, useState} from 'react'
+import { v4 as uuidv4 } from 'uuid';
 import './App.css';
 
 type FormElem = React.FormEvent<HTMLFormElement>
@@ -6,11 +7,21 @@ type FormElem = React.FormEvent<HTMLFormElement>
 interface ITodo {
   text: string
   complete: boolean
+  id: string
 }
 
 function App(): JSX.Element {
   const [value, setValue] = useState<string>('')
   const [todos, setTodos] = useState<ITodo[]>([])
+  
+  const getIndex = (id:string):number => {
+    for(let i = 0; i < todos.length; i++){
+      if (todos[i].id === id){
+        return i;
+      }
+    }
+    return -1
+  }
 
   const handleSubmit = (e:FormElem):void => {
     e.preventDefault()
@@ -19,19 +30,35 @@ function App(): JSX.Element {
   }
 
   const addTodo = (text: string):void => {
-    const newTodo: ITodo[] = [...todos, {text, complete: false}]
+    const newTodo: ITodo[] = [...todos, {text, complete: false, id: uuidv4()}]
     setTodos(newTodo)  
   }
 
-  const completeTodo = (index:number):void => {
+  const completeTodo = (id:string):void => {
     const newTodos:ITodo[] = [...todos]
-    newTodos[index].complete = !newTodos[index].complete
+    let index = (id:string):number => {
+      for(let i = 0; i < newTodos.length; i++){
+        if (newTodos[i].id === id){
+          return i;
+        }
+      }
+      return -1
+    }
+    newTodos[index(id)].complete = !newTodos[index(id)].complete
     setTodos(newTodos)
   }
 
-  const removeTodo = (index:number):void => {
+  const removeTodo = (id:string):void => {
     const newTodos:ITodo[] = [...todos]
-    newTodos.splice(index, 1)
+    let index = (id:string):number => {
+      for(let i = 0; i < newTodos.length; i++){
+        if (newTodos[i].id === id){
+          return i;
+        }
+      }
+      return -1
+    }
+    newTodos.splice(index(id), 1)
     setTodos(newTodos);
   }
 
@@ -45,13 +72,13 @@ function App(): JSX.Element {
         <button className='addTodo-button' type='submit'>Add Todo</button>
       </form>
       <section>
-        {todos.map((todo:ITodo, index:number) => {
+        {todos.map((todo:ITodo, id:number) => {
           return (
-          <div className='todo-display' key={index} style={{textDecoration: todo.complete ? 'line-through' : 'none'}}>
+          <div className='todo-display' key={todo.id} style={{textDecoration: todo.complete ? 'line-through' : 'none'}}>
             {todo.text}
             {'  '}
-            <input className='todo-complete-box' type='checkbox' onChange={() => completeTodo(index)}></input>
-            <button type='button' onClick={() => removeTodo(index)}>
+            <input className='todo-complete-box' type='checkbox' onChange={() => completeTodo(todo.id)}></input>
+            <button type='button' onClick={() => removeTodo(todo.id)}>
              &times;
             </button>
           </div>
